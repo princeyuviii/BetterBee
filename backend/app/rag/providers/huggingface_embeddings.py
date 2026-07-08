@@ -3,7 +3,6 @@ BetterBee — HuggingFace (SentenceTransformers) Embedding Provider.
 """
 
 import structlog
-from sentence_transformers import SentenceTransformer
 
 from app.rag.interfaces.embeddings import EmbeddingProvider
 
@@ -21,6 +20,7 @@ class HuggingFaceEmbeddingProvider(EmbeddingProvider):
     def _lazy_load(self) -> None:
         if self.model is None:
             logger.info("Loading sentence-transformers model into memory...", model=self.model_name)
+            from sentence_transformers import SentenceTransformer
             self.model = SentenceTransformer(self.model_name)
             logger.info("Sentence-transformers model loaded successfully")
 

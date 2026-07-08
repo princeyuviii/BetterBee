@@ -4,7 +4,6 @@ BetterBee — CrossEncoder Reranker Provider.
 
 from typing import Any
 import structlog
-from sentence_transformers import CrossEncoder
 
 from app.rag.interfaces.reranker import RerankerProvider, RankedResult
 
@@ -26,6 +25,7 @@ class CrossEncoderReranker(RerankerProvider):
         """Load the model into memory if not already loaded."""
         if self.model is None:
             logger.info("Loading CrossEncoder model into memory...", model=self.model_name)
+            from sentence_transformers import CrossEncoder
             self.model = CrossEncoder(self.model_name)
             logger.info("CrossEncoder model loaded successfully")
 
