@@ -11,13 +11,14 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
+from typing import Any
 from app.core.config import get_settings
 
 settings = get_settings()
 
 is_sqlite = settings.DATABASE_URL.startswith("sqlite")
 
-engine_kwargs = {
+engine_kwargs: dict[str, Any] = {
     "echo": settings.DB_ECHO,
 }
 
