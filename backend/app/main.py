@@ -97,58 +97,73 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         s3_connected = True
         s3_latency = int((time.perf_counter() - t0) * 1000)
 
-    # 5. Check AI Models loading individually
+    # 5. Check AI Models loading individually (Skip in production to avoid memory overhead)
     llm_ok = False
     llm_latency = 0
     llm_info = f"{settings.LLM_PROVIDER.capitalize()} ({settings.LLM_MODEL})"
-    t0 = time.perf_counter()
-    try:
-        from app.rag.factory import LLMFactory
-        llm = LLMFactory.create()
-        llm_ok = True
-        llm_latency = int((time.perf_counter() - t0) * 1000)
-        if hasattr(llm, "model") and isinstance(llm.model, str):
-            prov = settings.LLM_PROVIDER.lower()
-            prov_disp = "Groq" if prov == "groq" else ("OpenAI" if prov == "openai" else prov.capitalize())
-            llm_info = f"{prov_disp} ({llm.model})"
-    except Exception:
-        pass
-
+    
     embeddings_ok = False
     embeddings_latency = 0
     embedding_info = f"{settings.EMBEDDING_PROVIDER.capitalize()} ({settings.EMBEDDING_MODEL})"
-    t0 = time.perf_counter()
-    try:
-        from app.rag.factory import EmbeddingFactory
-        embedding = EmbeddingFactory.create()
-        embeddings_ok = True
-        embeddings_latency = int((time.perf_counter() - t0) * 1000)
-        model_str = None
-        if hasattr(embedding, "model_name") and isinstance(embedding.model_name, str):
-            model_str = embedding.model_name
-        elif hasattr(embedding, "model") and isinstance(embedding.model, str):
-            model_str = embedding.model
-            
-        if model_str:
-            prov = settings.EMBEDDING_PROVIDER.lower()
-            prov_disp = "HuggingFace" if prov in ("huggingface", "local") else ("OpenAI" if prov == "openai" else prov.capitalize())
-            embedding_info = f"{prov_disp} ({model_str})"
-    except Exception:
-        pass
-
+    
     reranker_ok = False
     reranker_latency = 0
     reranker_info = "cross-encoder/ms-marco-MiniLM-L-6-v2"
-    t0 = time.perf_counter()
-    try:
-        from app.rag.factory import RerankerFactory
-        reranker = RerankerFactory.create()
+
+    if settings.DEBUG:
+        # LLM
+        t0 = time.perf_counter()
+        try:
+            from app.rag.factory import LLMFactory
+            llm = LLMFactory.create()
+            llm_ok = True
+            llm_latency = int((time.perf_counter() - t0) * 1000)
+            if hasattr(llm, "model") and isinstance(llm.model, str):
+                prov = settings.LLM_PROVIDER.lower()
+                prov_disp = "Groq" if prov == "groq" else ("OpenAI" if prov == "openai" else prov.capitalize())
+                llm_info = f"{prov_disp} ({llm.model})"
+        except Exception:
+            pass
+
+        # Embeddings
+        t0 = time.perf_counter()
+        try:
+            from app.rag.factory import EmbeddingFactory
+            embedding = EmbeddingFactory.create()
+            embeddings_ok = True
+            embeddings_latency = int((time.perf_counter() - t0) * 1000)
+            model_str = None
+            if hasattr(embedding, "model_name") and isinstance(embedding.model_name, str):
+                model_str = embedding.model_name
+            elif hasattr(embedding, "model") and isinstance(embedding.model, str):
+                model_str = embedding.model
+                
+            if model_str:
+                prov = settings.EMBEDDING_PROVIDER.lower()
+                prov_disp = "HuggingFace" if prov in ("huggingface", "local") else ("OpenAI" if prov == "openai" else prov.capitalize())
+                embedding_info = f"{prov_disp} ({model_str})"
+        except Exception:
+            pass
+
+        # Reranker
+        t0 = time.perf_counter()
+        try:
+            from app.rag.factory import RerankerFactory
+            reranker = RerankerFactory.create()
+            reranker_ok = True
+            reranker_latency = int((time.perf_counter() - t0) * 1000)
+            if hasattr(reranker, "model_name") and isinstance(reranker.model_name, str):
+                reranker_info = reranker.model_name
+        except Exception:
+            pass
+    else:
+        # Production: Mark as lazy-loaded to prevent memory consumption on startup
+        llm_ok = True
+        embeddings_ok = True
         reranker_ok = True
-        reranker_latency = int((time.perf_counter() - t0) * 1000)
-        if hasattr(reranker, "model_name") and isinstance(reranker.model_name, str):
-            reranker_info = reranker.model_name
-    except Exception:
-        pass
+        llm_info += " [Lazy]"
+        embedding_info += " [Lazy]"
+        reranker_info += " [Lazy]"
 
     total_latency_s = time.perf_counter() - start_total
 
@@ -182,9 +197,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     print(f"Redis         {'✓' if redis_connected else '✗'}  ({redis_latency} ms)")
     print(f"{storage_label}    {'✓' if s3_connected else '✗'}  ({s3_latency} ms)")
     print(f"Chroma        {'✓' if chroma_ready else '✗'}  ({chroma_latency} ms)")
-    print(f"LLM           {'✓' if llm_ok else '✗'}  ({llm_latency} ms)")
-    print(f"Embeddings    {'✓' if embeddings_ok else '✗'}  ({embeddings_latency} ms)")
-    print(f"Reranker      {'✓' if reranker_ok else '✗'}  ({reranker_latency} ms)")
+    
+    if settings.DEBUG:
+        print(f"LLM           {'✓' if llm_ok else '✗'}  ({llm_latency} ms)")
+        print(f"Embeddings    {'✓' if embeddings_ok else '✗'}  ({embeddings_latency} ms)")
+        print(f"Reranker      {'✓' if reranker_ok else '✗'}  ({reranker_latency} ms)")
+    else:
+        print("LLM           ✓  (Lazy)")
+        print("Embeddings    ✓  (Lazy)")
+        print("Reranker      ✓  (Lazy)")
     print()
     print(f"✓ Backend Ready ({total_latency_s:.2f} s)")
     print(
