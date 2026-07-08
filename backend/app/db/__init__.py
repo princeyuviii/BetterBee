@@ -1,0 +1,1 @@
+"""BetterBee — Database package."""

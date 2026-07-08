@@ -1,0 +1,15 @@
+**BetterBee** is a production-grade private AI workspace designed for secure, grounded, and explainable enterprise knowledge retrieval.
+
+It implements a modular Retrieval-Augmented Generation (RAG) pipeline consisting of:
+
+1. **Document Ingestion:** Documents are securely uploaded using pre-signed URLs and stored through a pluggable storage layer (Local Storage or Amazon S3). Background workers asynchronously parse supported document formats, extract structured content, generate metadata, and perform recursive chunking.
+
+2. **Embedding Pipeline:** Document chunks are converted into dense vector embeddings using a configurable embedding provider, supporting both local Ollama embedding models and OpenAI embedding APIs.
+
+3. **Knowledge Storage:** Parsed documents, chunks, and metadata are stored in PostgreSQL, while dense vector embeddings are indexed in ChromaDB using workspace-specific collections for semantic retrieval.
+
+4. **Retrieval & Reranking:** User queries are embedded and matched against the vector store. Retrieved candidates are re-ranked using a local Cross-Encoder (`cross-encoder/ms-marco-MiniLM-L-6-v2`) to improve retrieval accuracy before constructing the final context.
+
+5. **Grounded Answer Generation:** The highest-ranked context is combined with conversation history and passed to a configurable LLM provider, including Groq, Google Gemini, OpenAI, or Ollama. Responses are streamed to the client using Server-Sent Events (SSE) with source citations and explainability metadata.
+
+The platform follows a modular provider-based architecture, allowing developers to replace storage providers, embedding models, vector databases, rerankers, and LLM providers through configuration with minimal code changes. Asynchronous ingestion using Celery and Redis, secure workspace isolation, configurable storage backends, and an extensible service architecture make BetterBee suitable as a foundation for enterprise-grade AI knowledge management systems.

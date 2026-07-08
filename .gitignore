@@ -1,0 +1,60 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+*.whl
+.venv/
+venv/
+env/
+
+# ===== Node.js =====
+node_modules/
+.next/
+out/
+.turbo/
+
+# ===== Environment =====
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ===== IDE =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ===== Docker =====
+docker-compose.override.yml
+
+# ===== Testing =====
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+coverage/
+playwright-report/
+
+# ===== Project-Specific =====
+chroma_data/
+*.log
+celerybeat-schedule
+celerybeat.pid
+betterbee.db
+*.db
+*.sqlite
+*.sqlite3
+
+# ===== Build =====
+*.js.map

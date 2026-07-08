@@ -1,0 +1,1 @@
+"""BetterBee Backend Application."""
