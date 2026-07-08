@@ -63,7 +63,8 @@ Frontend (Next.js 15)  →  Backend (FastAPI)  →  PostgreSQL (Supabase)
 
 ```bash
 # 1. Clone the repository
-git clone <repo-url> && cd Better
+git clone https://github.com/princeyuviii/BetterBee.git
+cd Better
 
 # 2. Copy environment variables
 cp .env.example backend/.env
