@@ -21,11 +21,13 @@ RUN apt-get update && \
 # --- Dependencies Stage ---
 FROM base AS deps
 
-COPY pyproject.toml ./
-RUN pip install --no-cache-dir -e "."
+COPY backend/requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # --- Production Stage ---
 FROM base AS production
+
+ENV PYTHONPATH=/app
 
 COPY --from=deps /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=deps /usr/local/bin /usr/local/bin
