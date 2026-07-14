@@ -61,7 +61,7 @@ class Settings(BaseSettings):
     LLM_PROVIDER: str = "groq"
     LLM_MODEL: str = "llama-3.3-70b-versatile"
 
-    # Active embedding provider: ollama | openai
+    # Active embedding provider: ollama | openai | gemini | huggingface
     EMBEDDING_PROVIDER: str = "ollama"
     EMBEDDING_MODEL: str = "nomic-embed-text"
 
@@ -77,6 +77,7 @@ class Settings(BaseSettings):
     CHROMA_COLLECTION_PREFIX: str = "workspace_"
 
     # --- RAG Configuration ---
+    RERANKER_PROVIDER: str = "cross-encoder"  # cross-encoder | none
     CHUNK_SIZE: int = 1000
     CHUNK_OVERLAP: int = 200
     RETRIEVAL_TOP_K: int = 20

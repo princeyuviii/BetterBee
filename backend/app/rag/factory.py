@@ -84,6 +84,12 @@ class EmbeddingFactory:
                 model=model,
                 api_key=settings.OPENAI_API_KEY,
             )
+        elif provider == "gemini":
+            from app.rag.providers.gemini_embeddings import GeminiEmbeddingProvider
+            return GeminiEmbeddingProvider(
+                model=model,
+                api_key=settings.GOOGLE_API_KEY,
+            )
         elif provider in ("huggingface", "local", "sentence-transformers"):
             from app.rag.providers.huggingface_embeddings import HuggingFaceEmbeddingProvider
             return HuggingFaceEmbeddingProvider(
@@ -112,6 +118,13 @@ class RerankerFactory:
 
     @staticmethod
     def create() -> RerankerProvider:
+        settings = get_settings()
+        provider = getattr(settings, "RERANKER_PROVIDER", "cross-encoder").lower()
+
+        if provider == "none":
+            from app.rag.providers.bypass_reranker import BypassReranker
+            return BypassReranker()
+
         # CrossEncoder is our default local lightweight reranker
         from app.rag.providers.cross_encoder_reranker import CrossEncoderReranker
         return CrossEncoderReranker()

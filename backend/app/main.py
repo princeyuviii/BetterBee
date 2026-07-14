@@ -108,7 +108,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     
     reranker_ok = False
     reranker_latency = 0
-    reranker_info = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    reranker_info = f"{settings.RERANKER_PROVIDER.capitalize()}" if settings.RERANKER_PROVIDER != "cross-encoder" else "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
     if settings.DEBUG:
         # LLM
