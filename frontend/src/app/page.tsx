@@ -106,7 +106,7 @@ export default function Home() {
                         Go to Dashboard <ArrowUpRight className="h-4 w-4" />
                       </button>
                     </Link>
-                    <UserButton afterSignOutUrl="/" />
+                    <UserButton />
                   </>
                 )}
               </>
