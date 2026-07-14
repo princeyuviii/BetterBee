@@ -208,11 +208,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         print("Reranker      ✓  (Lazy)")
     print()
     print(f"✓ Backend Ready ({total_latency_s:.2f} s)")
+    allowed_origins = ", ".join(settings.CORS_ORIGINS)
     print(
         f"\n"
-        f"API         http://localhost:8000\n"
-        f"Docs        http://localhost:8000/docs\n"
-        f"Frontend    http://localhost:3000"
+        f"API Bind    http://0.0.0.0:8000\n"
+        f"Docs Path   /docs (API Swagger documentation)\n"
+        f"Origins     {allowed_origins}"
     )
     print("═" * 47 + "\n")
 
