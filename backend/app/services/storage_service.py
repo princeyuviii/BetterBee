@@ -143,13 +143,12 @@ class LocalStorageProvider(StorageProvider):
         # Return local API endpoint path
         # Frontend will resolve this relative to the API URL or we construct full url
         settings = get_settings()
-        # In development, the API runs on http://localhost:8000 by default
-        base_url = "http://localhost:8000"
+        base_url = settings.API_BASE_URL.rstrip("/")
         return f"{base_url}{settings.API_V1_PREFIX}/storage/upload?key={key}"
 
     async def generate_download_url(self, key: str, expires_in: int = 3600) -> str:
         settings = get_settings()
-        base_url = "http://localhost:8000"
+        base_url = settings.API_BASE_URL.rstrip("/")
         return f"{base_url}{settings.API_V1_PREFIX}/storage/download?key={key}"
 
     async def delete_object(self, key: str) -> None:

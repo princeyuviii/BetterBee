@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     # --- App ---
     APP_NAME: str = "BetterBee"
     APP_VERSION: str = "0.1.0"
+    API_BASE_URL: str = "http://localhost:8000"
     DEBUG: bool = False
     API_V1_PREFIX: str = "/api/v1"
     CORS_ORIGINS: list[str] | str = ["http://localhost:3000"]
