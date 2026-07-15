@@ -45,6 +45,7 @@ class DocumentService:
         filename: str,
         file_size: int,
         file_type: str,
+        base_url: str | None = None,
     ) -> tuple[Document, str]:
         """
         Initiate document upload. Records metadata and returns a pre-signed upload URL.
@@ -57,7 +58,7 @@ class DocumentService:
         s3_key = f"workspaces/{workspace_id}/documents/{document_uuid}{extension}"
 
         # Generate upload URL
-        upload_url = await self._storage_provider.generate_upload_url(s3_key)
+        upload_url = await self._storage_provider.generate_upload_url(s3_key, base_url=base_url)
 
         # Save document placeholder in DB
         document = await self._document_repo.create(
@@ -300,10 +301,15 @@ class DocumentService:
         await self._verify_workspace_access(document.workspace_id, user_id)
         return document
 
-    async def get_document_download_url(self, document_id: uuid.UUID, user_id: uuid.UUID) -> str:
+    async def get_document_download_url(
+        self,
+        document_id: uuid.UUID,
+        user_id: uuid.UUID,
+        base_url: str | None = None,
+    ) -> str:
         """Generate a pre-signed download URL for a document."""
         document = await self.get_document_by_id(document_id, user_id)
-        return await self._storage_provider.generate_download_url(document.s3_key)
+        return await self._storage_provider.generate_download_url(document.s3_key, base_url=base_url)
 
     async def delete_document(self, document_id: uuid.UUID, user_id: uuid.UUID) -> None:
         """Soft delete a document from the workspace."""

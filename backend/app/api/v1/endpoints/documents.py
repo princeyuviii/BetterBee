@@ -4,7 +4,7 @@ BetterBee — Document Ingestion & Management API Endpoints.
 
 import uuid
 import structlog
-from fastapi import APIRouter, Depends, status, BackgroundTasks
+from fastapi import APIRouter, Depends, status, BackgroundTasks, Request
 
 from app.core.deps import CurrentUser, DocumentServiceDep
 from app.schemas.document import (
@@ -30,6 +30,7 @@ async def initiate_upload(
     body: DocumentUploadInitiateRequest,
     current_user: CurrentUser,
     document_service: DocumentServiceDep,
+    request: Request,
 ) -> DocumentUploadInitiateResponse:
     """
     Register document metadata and get a pre-signed URL to upload directly to S3.
@@ -40,6 +41,7 @@ async def initiate_upload(
         filename=body.filename,
         file_size=body.file_size,
         file_type=body.file_type,
+        base_url=str(request.base_url),
     )
     return DocumentUploadInitiateResponse(
         document_id=doc.id,
@@ -123,11 +125,13 @@ async def get_download_url(
     document_id: uuid.UUID,
     current_user: CurrentUser,
     document_service: DocumentServiceDep,
+    request: Request,
 ) -> str:
     """Get a temporary download URL for the document."""
     return await document_service.get_document_download_url(
         document_id=document_id,
         user_id=current_user.id,
+        base_url=str(request.base_url),
     )
 
 

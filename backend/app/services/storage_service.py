@@ -22,12 +22,12 @@ class StorageProvider(ABC):
     """Abstract interface defining required file storage operations."""
 
     @abstractmethod
-    async def generate_upload_url(self, key: str, expires_in: int = 3600) -> str:
+    async def generate_upload_url(self, key: str, expires_in: int = 3600, base_url: str | None = None) -> str:
         """Generate a pre-signed URL to upload a file directly."""
         pass
 
     @abstractmethod
-    async def generate_download_url(self, key: str, expires_in: int = 3600) -> str:
+    async def generate_download_url(self, key: str, expires_in: int = 3600, base_url: str | None = None) -> str:
         """Generate a pre-signed URL to download a file."""
         pass
 
@@ -78,7 +78,7 @@ class S3StorageProvider(StorageProvider):
 
         self.client = boto3.client("s3", **client_kwargs)
 
-    async def generate_upload_url(self, key: str, expires_in: int = 3600) -> str:
+    async def generate_upload_url(self, key: str, expires_in: int = 3600, base_url: str | None = None) -> str:
         try:
             return self.client.generate_presigned_url(
                 ClientMethod="put_object",
@@ -89,7 +89,7 @@ class S3StorageProvider(StorageProvider):
             logger.error("Failed to generate S3 pre-signed upload URL", error=str(e), key=key)
             raise
 
-    async def generate_download_url(self, key: str, expires_in: int = 3600) -> str:
+    async def generate_download_url(self, key: str, expires_in: int = 3600, base_url: str | None = None) -> str:
         try:
             return self.client.generate_presigned_url(
                 ClientMethod="get_object",
@@ -139,17 +139,19 @@ class LocalStorageProvider(StorageProvider):
         safe_key = os.path.basename(key)
         return os.path.join(self.storage_dir, safe_key)
 
-    async def generate_upload_url(self, key: str, expires_in: int = 3600) -> str:
+    async def generate_upload_url(self, key: str, expires_in: int = 3600, base_url: str | None = None) -> str:
         # Return local API endpoint path
         # Frontend will resolve this relative to the API URL or we construct full url
         settings = get_settings()
-        base_url = settings.API_BASE_URL.rstrip("/")
-        return f"{base_url}{settings.API_V1_PREFIX}/storage/upload?key={key}"
+        resolved_base = base_url or settings.API_BASE_URL or "http://localhost:8000"
+        resolved_base = resolved_base.rstrip("/")
+        return f"{resolved_base}{settings.API_V1_PREFIX}/storage/upload?key={key}"
 
-    async def generate_download_url(self, key: str, expires_in: int = 3600) -> str:
+    async def generate_download_url(self, key: str, expires_in: int = 3600, base_url: str | None = None) -> str:
         settings = get_settings()
-        base_url = settings.API_BASE_URL.rstrip("/")
-        return f"{base_url}{settings.API_V1_PREFIX}/storage/download?key={key}"
+        resolved_base = base_url or settings.API_BASE_URL or "http://localhost:8000"
+        resolved_base = resolved_base.rstrip("/")
+        return f"{resolved_base}{settings.API_V1_PREFIX}/storage/download?key={key}"
 
     async def delete_object(self, key: str) -> None:
         path = self._get_path(key)
